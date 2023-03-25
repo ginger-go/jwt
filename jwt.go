@@ -7,6 +7,15 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
+// FromTokenUnverified parses a token without secret and returns the claims.
+func FromTokenUnverified(token string) (*Claims, error) {
+	jwtClaims, err := jwt.Parse(token, nil)
+	if err != nil {
+		return nil, err
+	}
+	return jwtTokenToClaims(jwtClaims)
+}
+
 // FromToken parses a token and returns the claims.
 func FromToken(token, secret string) (*Claims, error) {
 	jwtClaims, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
@@ -15,17 +24,7 @@ func FromToken(token, secret string) (*Claims, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	mapClaims, ok := jwtClaims.Claims.(jwt.MapClaims)
-	if !ok {
-		return nil, errors.New("invalid claims")
-	}
-	claims := NewClaims()
-	for key, value := range mapClaims {
-		claims.Set(key, value)
-	}
-
-	return claims, nil
+	return jwtTokenToClaims(jwtClaims)
 }
 
 // ToToken creates a token from the claims.
@@ -38,4 +37,16 @@ func ToToken(claims *Claims, secret string, expiredAfter time.Duration) (string,
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwtClaims)
 	return token.SignedString([]byte(secret))
+}
+
+func jwtTokenToClaims(token *jwt.Token) (*Claims, error) {
+	mapClaims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, errors.New("invalid claims")
+	}
+	claims := NewClaims()
+	for key, value := range mapClaims {
+		claims.Set(key, value)
+	}
+	return claims, nil
 }
