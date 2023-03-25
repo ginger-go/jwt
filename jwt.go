@@ -39,6 +39,15 @@ func ToToken(claims *Claims, secret string, expiredAfter time.Duration) (string,
 	return token.SignedString([]byte(secret))
 }
 
+// RefreshToken refreshes a token.
+func RefreshToken(token, secret string, expiredAfter time.Duration) (string, error) {
+	claims, err := FromToken(token, secret)
+	if err != nil {
+		return "", err
+	}
+	return ToToken(claims, secret, expiredAfter)
+}
+
 func jwtTokenToClaims(token *jwt.Token) (*Claims, error) {
 	mapClaims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
