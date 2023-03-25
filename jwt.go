@@ -9,22 +9,22 @@ import (
 
 // FromTokenUnverified parses a token without secret and returns the claims.
 func FromTokenUnverified(token string) (*Claims, error) {
-	jwtClaims, err := jwt.Parse(token, nil)
-	if err != nil {
+	jwtToken, err := jwt.Parse(token, nil)
+	if err != nil && err.Error() != "no Keyfunc was provided." {
 		return nil, err
 	}
-	return jwtTokenToClaims(jwtClaims)
+	return jwtTokenToClaims(jwtToken)
 }
 
 // FromToken parses a token and returns the claims.
 func FromToken(token, secret string) (*Claims, error) {
-	jwtClaims, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+	jwtToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		return []byte(secret), nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	return jwtTokenToClaims(jwtClaims)
+	return jwtTokenToClaims(jwtToken)
 }
 
 // ToToken creates a token from the claims.
